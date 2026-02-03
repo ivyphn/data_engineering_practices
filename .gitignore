@@ -208,3 +208,7 @@ __marimo__/
 
 **/credentials.yml
 credentials.yml
+
+# destination dataset
+**/destination/
+**destination.db
