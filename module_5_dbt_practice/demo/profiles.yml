@@ -7,7 +7,7 @@ demo:
       s3_data_naming: table_unique
       region_name: ap-southeast-2
       database: awsdatacatalog
-      schema: olist
+      schema: olist_db
       threads: 4
       num_retries: 0
       aws_access_key_id: "{{ env_var('AWS_ACCESS_KEY_ID') }}"
