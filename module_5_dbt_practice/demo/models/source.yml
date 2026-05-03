@@ -1,7 +1,15 @@
 version: 2
 sources:
   - name: ol
-    schema: olist_db
+    schema: olist
     tables:
       - name: orders
       - name: customers
+      - name: australian_public_holidays
+      - name: order_items
+      - name: order_payments
+      - name: order_reviews
+      - name: product_category_name_translation
+      - name: products
+      - name: sellers
+

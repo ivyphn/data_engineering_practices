@@ -1,0 +1,11 @@
+version: 2
+seeds:
+  - name: australian_public_holidays
+    config:
+      column_types:
+        id: int
+        date: bigint
+        holiday_name: string
+        information: string
+        more_information: string
+        jurisdiction: string

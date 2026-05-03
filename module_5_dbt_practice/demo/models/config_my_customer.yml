@@ -1,0 +1,29 @@
+version: 2
+models:
+  - name: my_customers
+    config:
+      contract:
+        enforced: true
+      materialized: table
+    columns:
+      - name: customer_id
+        data_type: string
+        description: desc for customer_id
+        data_tests: 
+        - primary_key
+      - name: customer_unique_id
+        data_type: string
+        description: desc for customer_unique_id
+      - name: customer_zip_code_prefix
+        data_type: bigint
+        description: desc for customer_zip_code_prefix
+      - name: customer_city
+        data_type: string
+        description: desc for customer_city
+      - name: customer_state
+        data_type: string
+        description: desc for customer_state
+    # data_tests:
+    # - primary_key: 
+    #     arguments: 
+    #       column_name: customer_id  

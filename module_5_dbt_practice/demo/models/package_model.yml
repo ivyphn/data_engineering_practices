@@ -1,0 +1,9 @@
+version: 2
+models:
+  - name: package_model
+    config:
+      materialized: table
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: source('ol', 'orders')

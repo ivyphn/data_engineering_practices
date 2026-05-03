@@ -1,0 +1,9 @@
+version: 2
+models:
+  - name: my_products
+    config:
+      materialized: table
+    data_tests:
+    - primary_key: 
+        arguments: 
+          column_name: product_id  

@@ -1,0 +1,9 @@
+version: 2
+models:
+  - name: my_orders
+    config:
+      materialized: table
+    data_tests:
+    - primary_key: 
+        arguments: 
+          column_name: order_id
