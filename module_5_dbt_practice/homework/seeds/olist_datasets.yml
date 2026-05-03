@@ -1,0 +1,89 @@
+version: 2
+
+seeds:
+  - name: olist_orders
+    description: One row per order placed on the Olist platform.
+    config:
+      column_types:
+        order_id:                       varchar
+        customer_id:                    varchar
+        order_status:                   varchar
+        order_purchase_timestamp:       timestamp
+        order_approved_at:              timestamp
+        order_delivered_carrier_date:   timestamp
+        order_delivered_customer_date:  timestamp
+        order_estimated_delivery_date:  timestamp
+
+  - name: olist_customers
+    description: Customer records. customer_id is order-scoped; customer_unique_id is the true unique customer.
+    config:
+      column_types:
+        customer_id:                varchar
+        customer_unique_id:         varchar
+        customer_zip_code_prefix:   varchar
+        customer_city:              varchar
+        customer_state:             varchar
+
+  - name: olist_order_items
+    description: Line items within an order — one row per product per order.
+    config:
+      column_types:
+        order_id:             varchar
+        order_item_id:        int
+        product_id:           varchar
+        seller_id:            varchar
+        shipping_limit_date:  timestamp
+        price:                double
+        freight_value:        double
+
+  - name: olist_order_payments
+    description: Payment transactions for an order. An order may have multiple rows.
+    config:
+      column_types:
+        order_id:               varchar
+        payment_sequential:     int
+        payment_type:           varchar
+        payment_installments:   int
+        payment_value:          double
+
+  - name: olist_order_reviews
+    description: Customer reviews submitted after order delivery.
+    config:
+      column_types:
+        review_id:                varchar
+        order_id:                 varchar
+        review_score:             int
+        review_comment_title:     varchar
+        review_comment_message:   varchar
+        review_creation_date:     timestamp
+        review_answer_timestamp:  timestamp
+
+  - name: olist_products
+    description: Product catalogue with physical dimensions and category metadata.
+    config:
+      column_types:
+        product_id:                     varchar
+        product_category_name:          varchar
+        product_name_lenght:            int
+        product_description_lenght:     int
+        product_photos_qty:             int
+        product_weight_g:               double
+        product_length_cm:              double
+        product_height_cm:              double
+        product_width_cm:               double
+
+  - name: olist_sellers
+    description: Seller accounts registered on the Olist platform.
+    config:
+      column_types:
+        seller_id:                varchar
+        seller_zip_code_prefix:   varchar
+        seller_city:              varchar
+        seller_state:             varchar
+
+  - name: olist_product_category_name_translation
+    description: Maps Portuguese product category names to English equivalents.
+    config:
+      column_types:
+        product_category_name:          varchar
+        product_category_name_english:  varchar

@@ -1,0 +1,240 @@
+version: 2
+
+models:
+  # ─── Dimensions ───────────────────────────────────────────────────────────
+
+  - name: dim_customers
+    description: >
+      Customer dimension at the customer_unique_id grain. Includes location,
+      Brazilian macro-region, and pre-aggregated lifetime order metrics.
+    columns:
+      - name: customer_key
+        description: Natural key — customer_unique_id from source.
+        tests: [not_null, unique]
+      - name: customer_city
+        tests: [not_null]
+      - name: customer_state
+        tests: [not_null]
+      - name: customer_macro_region
+        description: Brazilian macro-region (Norte, Nordeste, Centro-Oeste, Sudeste, Sul).
+      - name: total_orders
+        tests: [not_null]
+      - name: lifetime_value
+        tests: [not_null]
+
+  - name: dim_products
+    description: >
+      Product dimension. English category names and physical product attributes.
+    columns:
+      - name: product_key
+        description: Natural key — product_id from source.
+        tests: [not_null, unique]
+      - name: category_name_en
+        description: English category name; falls back to Portuguese when no translation exists.
+
+  - name: dim_sellers
+    description: >
+      Seller dimension. Location attributes including Brazilian macro-region.
+    columns:
+      - name: seller_key
+        description: Natural key — seller_id from source.
+        tests: [not_null, unique]
+      - name: seller_city
+        tests: [not_null]
+      - name: seller_state
+        tests: [not_null]
+      - name: seller_macro_region
+        description: Brazilian macro-region of the seller.
+
+  - name: dim_date
+    description: >
+      Date dimension spanning 2016-01-01 to 2025-12-31. Includes calendar
+      breakdowns, weekend flag, business day flag, and Brazilian national
+      public holiday flag (Carnaval, Tiradentes, Natal, etc.).
+    columns:
+      - name: date_key
+        description: Integer surrogate key in YYYYMMDD format.
+        tests: [not_null, unique]
+      - name: calendar_date
+        tests: [not_null, unique]
+      - name: year
+        tests: [not_null]
+      - name: month
+        tests: [not_null]
+      - name: day
+        tests: [not_null]
+      - name: is_weekend
+        tests: [not_null]
+      - name: is_business_day
+        description: False on weekends and Brazilian national public holidays.
+        tests: [not_null]
+      - name: is_public_holiday
+        description: True on Brazilian national public holidays.
+        tests: [not_null]
+      - name: holiday_type
+        description: national_fixed or national_variable. NULL for non-holiday dates.
+
+  - name: dim_geography
+    description: >
+      Brazilian state dimension with macro-region mapping. 27 rows
+      (26 states + Federal District). Used to enrich customer and seller locations.
+    columns:
+      - name: state_code
+        description: Two-letter Brazilian state abbreviation.
+        tests: [not_null, unique]
+      - name: state_name
+        tests: [not_null]
+      - name: macro_region
+        tests:
+          - not_null
+          - accepted_values:
+              values: [Norte, Nordeste, Centro-Oeste, Sudeste, Sul]
+      - name: country
+        tests: [not_null]
+
+  - name: dim_customer_segments
+    description: >
+      RFM-based customer segmentation. One row per customer_unique_id.
+      Segments: Champions, Loyal Customers, Potential Loyalists, New Customers,
+      Needs Attention, At Risk, Cannot Lose Them, Hibernating, Lost.
+      Value tiers: Platinum, Gold, Silver, Bronze.
+    columns:
+      - name: customer_key
+        description: FK to dim_customers.customer_key.
+        tests: [not_null, unique]
+      - name: r_score
+        description: Recency score 1–5 (5 = most recent).
+        tests: [not_null]
+      - name: f_score
+        description: Frequency score 1–5 (5 = most orders).
+        tests: [not_null]
+      - name: m_score
+        description: Monetary score 1–5 (5 = highest spend).
+        tests: [not_null]
+      - name: rfm_total_score
+        description: Sum of R + F + M scores (3–15).
+        tests: [not_null]
+      - name: rfm_cell_code
+        description: Concatenated RFM scores e.g. "554".
+        tests: [not_null]
+      - name: customer_segment
+        tests: [not_null]
+      - name: value_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: [Platinum, Gold, Silver, Bronze]
+
+  # ─── Facts ────────────────────────────────────────────────────────────────
+
+  - name: fct_orders
+    description: >
+      Order fact table. One row per order_id. Foreign keys to dim_customers and
+      dim_date. Includes item, payment, delivery classification, and review measures.
+      New fields: payment_split_flag, has_review, delivery_status, is_late_delivery.
+    columns:
+      - name: order_id
+        description: Natural key for the order fact.
+        tests: [not_null, unique]
+      - name: customer_key
+        description: FK to dim_customers.customer_key.
+        tests: [not_null]
+      - name: purchase_date_key
+        description: FK to dim_date.date_key (YYYYMMDD).
+        tests: [not_null]
+      - name: order_status
+        tests: [not_null]
+      - name: delivery_status
+        description: "Values: on_time, late, cancelled, in_transit, unknown."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [on_time, late, cancelled, in_transit, unknown]
+      - name: is_late_delivery
+        tests: [not_null]
+      - name: item_count
+        tests: [not_null]
+      - name: gross_order_value
+        tests: [not_null]
+      - name: total_payment_value
+        tests: [not_null]
+      - name: payment_split_flag
+        description: True when the customer used more than one payment method.
+        tests: [not_null]
+      - name: has_review
+        description: True when at least one review exists for this order.
+        tests: [not_null]
+
+  - name: fct_order_items
+    description: >
+      Order items fact table. One row per (order_id, order_item_id).
+      Foreign keys to dim_products and dim_sellers.
+    columns:
+      - name: order_id
+        tests: [not_null]
+      - name: order_item_id
+        tests: [not_null]
+      - name: product_key
+        description: FK to dim_products.product_key.
+        tests: [not_null]
+      - name: seller_key
+        description: FK to dim_sellers.seller_key.
+        tests: [not_null]
+      - name: price
+        tests: [not_null]
+      - name: freight_value
+        tests: [not_null]
+      - name: total_item_value
+        tests: [not_null]
+
+  - name: fct_seller_monthly_metrics
+    description: >
+      Monthly seller performance scorecard. One row per (seller_key, order_month).
+      Includes volume, revenue, quality, on-time delivery, and cancellation metrics.
+      Useful for seller tier management and SLA monitoring.
+    columns:
+      - name: seller_key
+        description: FK to dim_sellers.seller_key.
+        tests: [not_null]
+      - name: order_month
+        description: First day of the month (DATE).
+        tests: [not_null]
+      - name: orders_count
+        tests: [not_null]
+      - name: items_sold
+        tests: [not_null]
+      - name: gmv
+        description: Gross merchandise value — sum of item prices.
+        tests: [not_null]
+      - name: on_time_delivery_rate
+        description: Share of delivered orders arriving on or before estimated date.
+      - name: cancellation_rate
+        description: Share of orders that were cancelled.
+
+  - name: fct_customer_cohorts
+    description: >
+      Monthly cohort retention table. Grain: (acquisition_month, activity_month).
+      Tracks how many customers from each acquisition cohort placed orders
+      in each subsequent month, with revenue and retention rate.
+      Use for cohort retention charts and LTV-by-cohort analysis.
+    columns:
+      - name: acquisition_month
+        description: Month the cohort was first acquired (first order month).
+        tests: [not_null]
+      - name: activity_month
+        description: The month in which activity is being measured.
+        tests: [not_null]
+      - name: months_since_acquisition
+        description: 0 = acquisition month, 1 = first retention month, etc.
+        tests: [not_null]
+      - name: cohort_size
+        description: Total number of customers acquired in acquisition_month.
+        tests: [not_null]
+      - name: active_customers
+        description: Customers from the cohort who placed an order in activity_month.
+        tests: [not_null]
+      - name: retention_rate
+        description: active_customers / cohort_size.
+        tests: [not_null]
+      - name: total_revenue
+        tests: [not_null]

@@ -1,0 +1,15 @@
+homework:
+  outputs:
+    dev:
+      type: athena
+      s3_staging_dir: s3://aws-s3-log-de1/athena-queries/
+      s3_data_dir: s3://dek1-ivyphan-curated/homework/
+      s3_data_naming: table_unique
+      region_name: ap-southeast-2
+      database: awsdatacatalog
+      schema: olist
+      threads: 4
+      num_retries: 0
+      aws_access_key_id: "{{ env_var('AWS_ACCESS_KEY_ID') }}"
+      aws_secret_access_key: "{{ env_var('AWS_SECRET_ACCESS_KEY') }}"
+  target: dev

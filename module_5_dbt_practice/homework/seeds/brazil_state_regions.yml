@@ -1,0 +1,26 @@
+version: 2
+
+seeds:
+  - name: brazil_state_regions
+    description: >
+      Mapping of all 27 Brazilian states and the Federal District to their
+      5 macro-regions: Norte, Nordeste, Centro-Oeste, Sudeste, Sul.
+      Used to enrich customer and seller dimensions with regional context.
+    config:
+      column_types:
+        state_code: string
+        state_name: string
+        macro_region: string
+    columns:
+      - name: state_code
+        description: Two-letter Brazilian state abbreviation (e.g. SP, RJ, MG).
+        tests: [not_null, unique]
+      - name: state_name
+        description: Full Portuguese state name.
+        tests: [not_null]
+      - name: macro_region
+        description: Brazilian macro-region the state belongs to.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [Norte, Nordeste, Centro-Oeste, Sudeste, Sul]

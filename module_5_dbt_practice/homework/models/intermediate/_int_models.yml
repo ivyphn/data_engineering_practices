@@ -1,0 +1,98 @@
+version: 2
+
+models:
+  - name: int_products_enriched
+    description: >
+      Products joined with English category translations.
+      Falls back to the Portuguese category name when no translation exists.
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: category_name_en
+        description: English category name; falls back to Portuguese when no translation exists.
+
+  - name: int_orders_items_agg
+    description: >
+      Orders enriched with per-order item aggregates: item count, subtotal, and
+      total freight. Preserves all order timestamps from stg_orders.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: item_count
+        tests: [not_null]
+
+  - name: int_orders_payments_agg
+    description: >
+      Per-order payment aggregates: total amount paid, max instalment count,
+      primary payment type (highest single value), method count, and split flag.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: total_payment_value
+        tests: [not_null]
+      - name: payment_method_count
+        description: Number of distinct payment types used for this order.
+        tests: [not_null]
+      - name: payment_split_flag
+        description: True when the customer used more than one payment method.
+
+  - name: int_orders_reviews_agg
+    description: >
+      Per-order review aggregates: average and max score, review count, and
+      the comment from the most recently created review.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+
+  - name: int_orders_complete
+    description: >
+      Central order record joining items, payments, and reviews aggregates.
+      Adds computed delivery lead-times, delivery_status classification,
+      is_late_delivery flag, payment split flag, and has_review flag.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: delivery_status
+        description: "Values: on_time, late, cancelled, in_transit, unknown."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [on_time, late, cancelled, in_transit, unknown]
+      - name: is_late_delivery
+        tests: [not_null]
+      - name: has_review
+        tests: [not_null]
+      - name: payment_split_flag
+        tests: [not_null]
+
+  - name: int_customer_rfm
+    description: >
+      RFM (Recency, Frequency, Monetary) scores per unique customer.
+      Recency is measured in days relative to the latest order date in the dataset.
+      Each score is a quintile 1–5; rfm_cell_code concatenates all three.
+    columns:
+      - name: customer_unique_id
+        tests: [not_null, unique]
+      - name: r_score
+        tests: [not_null]
+      - name: f_score
+        tests: [not_null]
+      - name: m_score
+        tests: [not_null]
+      - name: rfm_total_score
+
+  - name: int_customers_orders
+    description: >
+      Customer-level lifetime order statistics aggregated to the
+      customer_unique_id grain (true customer, not order-scoped customer_id).
+    columns:
+      - name: customer_unique_id
+        tests: [not_null, unique]
+      - name: total_orders
+        tests: [not_null]
+      - name: lifetime_value
+        tests: [not_null]

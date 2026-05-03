@@ -1,0 +1,26 @@
+version: 2
+
+seeds:
+  - name: brazil_public_holidays
+    description: >
+      Brazilian national public holidays 2016–2025, including both fixed-date
+      and variable holidays (Carnaval, Good Friday, Corpus Christi).
+      Dia da Consciência Negra included from 2023 when it became a national holiday.
+    config:
+      column_types:
+        holiday_date: string
+        holiday_name: string
+        holiday_type: string
+    columns:
+      - name: holiday_date
+        description: Calendar date of the holiday in YYYY-MM-DD format.
+        tests: [not_null]
+      - name: holiday_name
+        description: Official Portuguese name of the holiday.
+        tests: [not_null]
+      - name: holiday_type
+        description: "national_fixed for fixed-date holidays; national_variable for Easter-dependent holidays."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [national_fixed, national_variable]

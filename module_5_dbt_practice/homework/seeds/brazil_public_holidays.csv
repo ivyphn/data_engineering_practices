@@ -1,0 +1,124 @@
+holiday_date,holiday_name,holiday_type
+2016-01-01,Confraternização Universal,national_fixed
+2016-02-08,Carnaval,national_variable
+2016-02-09,Carnaval,national_variable
+2016-03-25,Sexta-feira da Paixão,national_variable
+2016-04-21,Tiradentes,national_fixed
+2016-05-01,Dia do Trabalho,national_fixed
+2016-05-26,Corpus Christi,national_variable
+2016-09-07,Independência do Brasil,national_fixed
+2016-10-12,Nossa Senhora Aparecida,national_fixed
+2016-11-02,Finados,national_fixed
+2016-11-15,Proclamação da República,national_fixed
+2016-12-25,Natal,national_fixed
+2017-01-01,Confraternização Universal,national_fixed
+2017-02-27,Carnaval,national_variable
+2017-02-28,Carnaval,national_variable
+2017-04-14,Sexta-feira da Paixão,national_variable
+2017-04-21,Tiradentes,national_fixed
+2017-05-01,Dia do Trabalho,national_fixed
+2017-06-15,Corpus Christi,national_variable
+2017-09-07,Independência do Brasil,national_fixed
+2017-10-12,Nossa Senhora Aparecida,national_fixed
+2017-11-02,Finados,national_fixed
+2017-11-15,Proclamação da República,national_fixed
+2017-12-25,Natal,national_fixed
+2018-01-01,Confraternização Universal,national_fixed
+2018-02-12,Carnaval,national_variable
+2018-02-13,Carnaval,national_variable
+2018-03-30,Sexta-feira da Paixão,national_variable
+2018-04-21,Tiradentes,national_fixed
+2018-05-01,Dia do Trabalho,national_fixed
+2018-05-31,Corpus Christi,national_variable
+2018-09-07,Independência do Brasil,national_fixed
+2018-10-12,Nossa Senhora Aparecida,national_fixed
+2018-11-02,Finados,national_fixed
+2018-11-15,Proclamação da República,national_fixed
+2018-12-25,Natal,national_fixed
+2019-01-01,Confraternização Universal,national_fixed
+2019-03-04,Carnaval,national_variable
+2019-03-05,Carnaval,national_variable
+2019-04-19,Sexta-feira da Paixão,national_variable
+2019-04-21,Tiradentes,national_fixed
+2019-05-01,Dia do Trabalho,national_fixed
+2019-06-20,Corpus Christi,national_variable
+2019-09-07,Independência do Brasil,national_fixed
+2019-10-12,Nossa Senhora Aparecida,national_fixed
+2019-11-02,Finados,national_fixed
+2019-11-15,Proclamação da República,national_fixed
+2019-12-25,Natal,national_fixed
+2020-01-01,Confraternização Universal,national_fixed
+2020-02-24,Carnaval,national_variable
+2020-02-25,Carnaval,national_variable
+2020-04-10,Sexta-feira da Paixão,national_variable
+2020-04-21,Tiradentes,national_fixed
+2020-05-01,Dia do Trabalho,national_fixed
+2020-06-11,Corpus Christi,national_variable
+2020-09-07,Independência do Brasil,national_fixed
+2020-10-12,Nossa Senhora Aparecida,national_fixed
+2020-11-02,Finados,national_fixed
+2020-11-15,Proclamação da República,national_fixed
+2020-12-25,Natal,national_fixed
+2021-01-01,Confraternização Universal,national_fixed
+2021-02-15,Carnaval,national_variable
+2021-02-16,Carnaval,national_variable
+2021-04-02,Sexta-feira da Paixão,national_variable
+2021-04-21,Tiradentes,national_fixed
+2021-05-01,Dia do Trabalho,national_fixed
+2021-06-03,Corpus Christi,national_variable
+2021-09-07,Independência do Brasil,national_fixed
+2021-10-12,Nossa Senhora Aparecida,national_fixed
+2021-11-02,Finados,national_fixed
+2021-11-15,Proclamação da República,national_fixed
+2021-12-25,Natal,national_fixed
+2022-01-01,Confraternização Universal,national_fixed
+2022-02-28,Carnaval,national_variable
+2022-03-01,Carnaval,national_variable
+2022-04-15,Sexta-feira da Paixão,national_variable
+2022-04-21,Tiradentes,national_fixed
+2022-05-01,Dia do Trabalho,national_fixed
+2022-06-16,Corpus Christi,national_variable
+2022-09-07,Independência do Brasil,national_fixed
+2022-10-12,Nossa Senhora Aparecida,national_fixed
+2022-11-02,Finados,national_fixed
+2022-11-15,Proclamação da República,national_fixed
+2022-12-25,Natal,national_fixed
+2023-01-01,Confraternização Universal,national_fixed
+2023-02-20,Carnaval,national_variable
+2023-02-21,Carnaval,national_variable
+2023-04-07,Sexta-feira da Paixão,national_variable
+2023-04-21,Tiradentes,national_fixed
+2023-05-01,Dia do Trabalho,national_fixed
+2023-06-08,Corpus Christi,national_variable
+2023-09-07,Independência do Brasil,national_fixed
+2023-10-12,Nossa Senhora Aparecida,national_fixed
+2023-11-02,Finados,national_fixed
+2023-11-15,Proclamação da República,national_fixed
+2023-11-20,Dia da Consciência Negra,national_fixed
+2023-12-25,Natal,national_fixed
+2024-01-01,Confraternização Universal,national_fixed
+2024-02-12,Carnaval,national_variable
+2024-02-13,Carnaval,national_variable
+2024-03-29,Sexta-feira da Paixão,national_variable
+2024-04-21,Tiradentes,national_fixed
+2024-05-01,Dia do Trabalho,national_fixed
+2024-05-30,Corpus Christi,national_variable
+2024-09-07,Independência do Brasil,national_fixed
+2024-10-12,Nossa Senhora Aparecida,national_fixed
+2024-11-02,Finados,national_fixed
+2024-11-15,Proclamação da República,national_fixed
+2024-11-20,Dia da Consciência Negra,national_fixed
+2024-12-25,Natal,national_fixed
+2025-01-01,Confraternização Universal,national_fixed
+2025-03-03,Carnaval,national_variable
+2025-03-04,Carnaval,national_variable
+2025-04-18,Sexta-feira da Paixão,national_variable
+2025-04-21,Tiradentes,national_fixed
+2025-05-01,Dia do Trabalho,national_fixed
+2025-06-19,Corpus Christi,national_variable
+2025-09-07,Independência do Brasil,national_fixed
+2025-10-12,Nossa Senhora Aparecida,national_fixed
+2025-11-02,Finados,national_fixed
+2025-11-15,Proclamação da República,national_fixed
+2025-11-20,Dia da Consciência Negra,national_fixed
+2025-12-25,Natal,national_fixed
