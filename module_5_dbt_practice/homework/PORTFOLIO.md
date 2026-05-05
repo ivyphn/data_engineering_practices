@@ -1,7 +1,8 @@
 # dbt Data Warehouse — Olist Brazilian E-Commerce
 
 > **Stack:** dbt · AWS Athena (Presto SQL) · Amazon S3  
-> **Dataset:** [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — 100k+ real orders, 2016–2018
+> **Dataset:** [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — 100k+ real orders, 2016–2018  
+> **Models:** 26 total — 9 staging · 7 intermediate · 10 marts · 21 tests
 
 ---
 
@@ -24,7 +25,7 @@
 
 ## 1. What I Built
 
-Raw Olist data arrives as separate CSV tables — orders, customers, products, payments, reviews, and sellers. Without transformation, answering even basic business questions requires messy ad-hoc SQL. The goal here was to build a clean, layered warehouse that analysts can query directly.
+Raw Olist data arrives as separate CSV tables — orders, customers, products, payments, reviews, and sellers. Without transformation, answering even basic business questions requires complex ad-hoc SQL. The objective was to build a clean, layered data warehouse using dbt that analysts can query directly from any BI tool.
 
 **What analysts can answer after this project:**
 
@@ -56,7 +57,7 @@ Olist is a Brazilian marketplace where sellers list products and ship directly t
                     └─────────────┘        └─────────────┘
 ```
 
-**One thing to know about the source data:** `customer_id` is order-scoped — the same person gets a new `customer_id` for every order they place. The real unique person identifier is `customer_unique_id`. This comes up throughout the project.
+**A key quirk in the source data:** `customer_id` is order-scoped — the same person receives a new `customer_id` for every order they place. The true unique person identifier is `customer_unique_id`. This distinction is important and comes up throughout the project.
 
 ---
 
@@ -89,7 +90,7 @@ Three layers, each with a clear job:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-Staging and intermediate are `view` — they're just logic, not worth storing. Marts are `table` because that's what analysts query.
+Staging and intermediate are materialised as `view` — they represent transformation logic and don't need to be stored. Marts are materialised as `table` because they are the query layer used by analysts and BI tools.
 
 ---
 
@@ -112,7 +113,7 @@ models:
       +schema: marts
 ```
 
-Setting this at the folder level means every model inside automatically inherits the right materialization — no need to configure each file individually.
+Configuring materialisation at the folder level means every model within that folder automatically inherits the correct setting — no need to specify it in each individual file.
 
 ### Package
 
@@ -123,20 +124,24 @@ packages:
     version: 1.3.3
 ```
 
-Used for utility macros. Pinned to a specific version so the project builds consistently.
+`dbt_utils` provides commonly used SQL utility macros. The version is pinned to ensure consistent, reproducible builds.
 
 ---
 
 ## 5. Step 1 — Seeds
 
-Seeds are CSV files loaded into the warehouse by dbt. I used them for two small reference tables that don't come from any source system:
+Seeds are CSV files that dbt loads directly into the warehouse. In practice, seeds are best suited for small, static reference tables — lookup data that rarely changes and doesn't belong in a source system.
+
+In this project, all raw Olist data was also loaded as seeds for convenience, since the goal was to focus on transformation rather than ingestion. In a production setup, transactional data like orders and payments would come through a proper ingestion pipeline (e.g. Fivetran, Airbyte) and be declared as dbt sources instead.
+
+The two reference seeds used throughout the project:
 
 | Seed | Used for |
 |---|---|
 | `brazil_public_holidays` | Flagging business days in `dim_date` |
 | `brazil_state_regions` | Mapping states to macro-regions in `dim_customers` and `dim_sellers` |
 
-Rather than hardcoding region mappings as `CASE` statements in SQL, keeping them in a seed file means they're easy to update and can be tested like any other model:
+Keeping these as seed files rather than hardcoded `CASE` statements means they're easy to update and can be tested:
 
 ```yaml
 # seeds/brazil_state_regions.yml
@@ -150,7 +155,7 @@ Rather than hardcoding region mappings as `CASE` statements in SQL, keeping them
 
 ## 6. Step 2 — Macros
 
-Three macros in `macros/date_utils.sql` to avoid repeating the same SQL across models.
+Three macros in `macros/date_utils.sql` encapsulate logic that would otherwise be repeated across multiple models.
 
 ### `convert_timezone(column_name)`
 
@@ -158,7 +163,7 @@ Three macros in `macros/date_utils.sql` to avoid repeating the same SQL across m
 {{ convert_timezone('order_purchase_timestamp') }}
 ```
 
-The source data uses Brasília time (UTC-3). Without conversion, day boundaries shift when the data is read in a different timezone. This macro handles the conversion consistently across all staging models — if the timezone ever needs to change, it's one line.
+The source data is in Brasília time (UTC-3). Without conversion, day boundaries shift when the data is analysed in a different timezone. Centralising this in a macro keeps all staging models consistent — if the target timezone ever changes, it requires a single update.
 
 ### `datediff_days(start_col, end_col)`
 
@@ -166,17 +171,17 @@ The source data uses Brasília time (UTC-3). Without conversion, day boundaries 
 {{ datediff_days('order_purchase_timestamp', 'order_delivered_customer_date') }}
 ```
 
-Presto's `date_diff` silently returns wrong results when either input is NULL. The macro wraps it in a `CASE WHEN ... IS NULL THEN NULL` guard so every lead-time calculation is safe by default.
+Presto's `date_diff` returns unexpected results when either input is `NULL`. The macro wraps it in a `CASE WHEN ... IS NULL THEN NULL` guard, ensuring all delivery lead-time calculations are NULL-safe without repeating the logic each time.
 
 ### `date_part(part, column_name)`
 
-Wraps Presto's non-standard `day_of_week()` so date extraction reads the same as other SQL dialects.
+Abstracts Presto's non-standard `day_of_week()` function so date extraction reads consistently across models.
 
 ---
 
 ## 7. Step 3 — Staging Layer
 
-Each staging model maps 1:1 to a source table. The only job here is cleaning — rename, recast, nothing else.
+Each staging model maps 1:1 to a source table. The sole responsibility at this layer is cleaning — renaming columns and recasting data types. No business logic is applied here.
 
 | Model | What was done |
 |---|---|
@@ -190,7 +195,7 @@ Each staging model maps 1:1 to a source table. The only job here is cleaning —
 | `stg_product_categories` | Renamed to `category_name_pt` / `category_name_en` to be explicit |
 | `stg_public_holidays` | `holiday_date` string cast to `DATE` |
 
-All models use `{{ ref() }}` instead of hardcoded table names — this is how dbt knows the dependency order and builds the DAG.
+All models reference upstream models using `{{ ref() }}` rather than hardcoded table names. This is how dbt resolves the dependency graph and determines the correct build order.
 
 ```sql
 -- stg_orders.sql
@@ -211,7 +216,7 @@ from source
 
 ## 8. Step 4 — Intermediate Layer
 
-This is where raw data becomes business data. Rather than putting all the logic in one big model, I split it by concern:
+This is where raw data is transformed into business-ready data. Rather than consolidating all logic into a single large model, each model addresses one concern:
 
 ```
 stg_order_items    ────────────────────────────────────────────────┐
@@ -220,11 +225,11 @@ stg_order_reviews  ───► int_orders_reviews_agg  ────────
 stg_orders         ───► int_orders_items_agg    ───────────────────┘
 ```
 
-Each `_agg` model aggregates one thing to order grain. Splitting them up means each one is independently testable and easy to debug.
+Each `_agg` model aggregates a single data domain to order grain. Keeping them separate means each model is independently testable and straightforward to debug in isolation.
 
-### `int_orders_payments_agg` — picking the primary payment type
+### `int_orders_payments_agg` — identifying the primary payment type
 
-An order can have multiple payment rows (e.g. voucher + credit card split). To get one primary payment type per order, I used `ROW_NUMBER()` ordered by `payment_value desc` — the method with the highest value wins:
+An order can have multiple payment rows (e.g. a voucher combined with a credit card). To determine a single primary payment type per order, `ROW_NUMBER()` is applied ordered by `payment_value desc` — the method with the highest value is treated as the primary:
 
 ```sql
 row_number() over (
@@ -233,9 +238,9 @@ row_number() over (
 ) as rn
 ```
 
-### `int_orders_complete` — delivery classification
+### `int_orders_complete` — delivery status classification
 
-Delivery status is computed once here and reused in both `fct_orders` and `fct_seller_monthly_metrics`:
+Delivery status is derived once here and reused downstream in both `fct_orders` and `fct_seller_monthly_metrics`:
 
 ```sql
 case
@@ -259,11 +264,11 @@ RFM scores each customer 1–5 on three dimensions using `NTILE(5)`:
 | Frequency | Most orders | Fewest orders |
 | Monetary | Highest spend | Lowest spend |
 
-The recency anchor uses `max(last_order_date)` from the data — not `current_date()`. This keeps scores stable and reproducible regardless of when the model runs.
+The recency anchor is `max(last_order_date)` from the dataset rather than `current_date()`. This ensures scores remain stable and comparable every time the model runs.
 
 ### `int_customers_orders` — resolving the customer_id problem
 
-This model is where `customer_id` (order-scoped) gets aggregated up to `customer_unique_id` (the real person). From this point on, every downstream model works at the true customer grain.
+This model aggregates from `customer_id` (order-scoped) up to `customer_unique_id` (the true person). All downstream models work at the `customer_unique_id` grain from this point forward.
 
 ```sql
 select
@@ -349,7 +354,7 @@ Core transaction fact. Connects to `dim_customers` and `dim_date`. Key measures:
 
 #### `fct_order_items` — one row per line item
 
-Connects to `dim_products` and `dim_sellers`. Kept separate from `fct_orders` because they have different grains — joining them before aggregating would double-count revenue on multi-item orders.
+Connects to `dim_products` and `dim_sellers`. Kept separate from `fct_orders` because they operate at different grains — combining them before aggregation would double-count revenue on orders with multiple items.
 
 #### `fct_seller_monthly_metrics` — one row per (seller, month)
 
@@ -391,14 +396,17 @@ Cover the basics on every model: primary keys are `not_null` + `unique`, categor
 
 ### Singular tests (custom SQL in `tests/`)
 
-Cover business rules that generic tests can't express:
+Cover business rules that generic tests can't express. A few decisions worth noting:
+
+- **`test_payment_value_positive`** — flags `payment_value < 0` only. A value of zero is valid (e.g. a fully discounted voucher), so the test deliberately allows it.
+- **`test_payment_installments_positive`** — during testing, some installment values came through as `0`, likely from user input. Rather than failing the pipeline, the staging model uses `GREATEST(payment_installments, 1)` to floor the value at 1, which is the minimum meaningful installment count. The test then validates the result is always `>= 1`.
 
 ```
 tests/
 ├── staging/
-│   ├── test_payment_value_positive.sql             # payment_value <= 0
+│   ├── test_payment_value_positive.sql             # payment_value < 0 (zero is allowed)
 │   ├── test_item_price_non_negative.sql            # price or freight < 0
-│   └── test_payment_installments_positive.sql      # installments < 1
+│   └── test_payment_installments_positive.sql      # installments < 1 (handled by GREATEST in staging)
 │
 ├── intermediate/
 │   ├── test_delivery_date_after_purchase.sql       # delivered before ordered
@@ -421,7 +429,7 @@ tests/
     └── test_dim_date_no_gaps.sql                  # no missing days in date spine
 ```
 
-Testing at each layer means a problem surfaces close to its source — a staging data issue shows up as a staging test failure, not as a wrong number in a dashboard.
+Testing at each layer means issues surface close to their source. A problem in staging data is caught as a staging test failure rather than appearing as an incorrect number in a downstream dashboard.
 
 ---
 
