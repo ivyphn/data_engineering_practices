@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: >
+      Date dimension spanning 2016-01-01 to 2025-12-31. Includes calendar
+      breakdowns, weekend flag, business day flag, and Brazilian national
+      public holiday flag (Carnaval, Tiradentes, Natal, etc.).
+    columns:
+      - name: date_key
+        description: Integer surrogate key in YYYYMMDD format.
+        tests: [not_null, unique]
+      - name: calendar_date
+        tests: [not_null, unique]
+      - name: year
+        tests: [not_null]
+      - name: month
+        tests: [not_null]
+      - name: day
+        tests: [not_null]
+      - name: is_weekend
+        tests: [not_null]
+      - name: is_business_day
+        description: False on weekends and Brazilian national public holidays.
+        tests: [not_null]
+      - name: is_public_holiday
+        description: True on Brazilian national public holidays.
+        tests: [not_null]
+      - name: holiday_type
+        description: national_fixed or national_variable. NULL for non-holiday dates.

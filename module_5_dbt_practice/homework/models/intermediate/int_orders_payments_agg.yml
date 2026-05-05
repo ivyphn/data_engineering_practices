@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: int_orders_payments_agg
+    description: >
+      Per-order payment aggregates: total amount paid, max instalment count,
+      primary payment type (highest single value), method count, and split flag.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: total_payment_value
+        tests: [not_null]
+      - name: payment_method_count
+        description: Number of distinct payment types used for this order.
+        tests: [not_null]
+      - name: payment_split_flag
+        description: True when the customer used more than one payment method.

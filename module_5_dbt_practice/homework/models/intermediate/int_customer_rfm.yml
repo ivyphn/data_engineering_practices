@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: int_customer_rfm
+    description: >
+      RFM (Recency, Frequency, Monetary) scores per unique customer.
+      Recency is measured in days relative to the latest order date in the dataset.
+      Each score is a quintile 1–5; rfm_cell_code concatenates all three.
+    columns:
+      - name: customer_unique_id
+        tests: [not_null, unique]
+      - name: r_score
+        tests: [not_null]
+      - name: f_score
+        tests: [not_null]
+      - name: m_score
+        tests: [not_null]
+      - name: rfm_total_score

@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: >
+      Staging for customers. Zip code cast to VARCHAR.
+      Note: customer_id is order-scoped; customer_unique_id identifies the true customer.
+    columns:
+      - name: customer_id
+        description: Order-scoped customer PK.
+        tests: [not_null, unique]
+      - name: customer_unique_id
+        description: True unique customer identifier.
+        tests: [not_null]

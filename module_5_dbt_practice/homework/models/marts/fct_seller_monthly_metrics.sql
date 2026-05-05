@@ -31,7 +31,7 @@ order_item_enriched as (
         o.order_delivered_customer_date,
         o.order_estimated_delivery_date,
         r.avg_review_score,
-        date_trunc('month', date(o.order_purchase_timestamp)) as order_month
+        date_trunc('month', cast(o.order_purchase_timestamp as timestamp)) as order_month
     from order_items as oi
     left join orders as o
         on oi.order_id = o.order_id

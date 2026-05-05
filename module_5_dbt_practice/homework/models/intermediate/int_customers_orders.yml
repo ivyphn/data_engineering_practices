@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: int_customers_orders
+    description: >
+      Customer-level lifetime order statistics aggregated to the
+      customer_unique_id grain (true customer, not order-scoped customer_id).
+    columns:
+      - name: customer_unique_id
+        tests: [not_null, unique]
+      - name: total_orders
+        tests: [not_null]
+      - name: lifetime_value
+        tests: [not_null]

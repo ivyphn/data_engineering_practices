@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: >
+      Staging for products. Physical dimensions and weight cast to DECIMAL.
+      Text-length metrics cast to INT.
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: product_weight_g
+        description: Product weight in grams.

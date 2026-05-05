@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: fct_order_items
+    description: >
+      Order items fact table. One row per (order_id, order_item_id).
+      Foreign keys to dim_products and dim_sellers.
+    columns:
+      - name: order_id
+        tests: [not_null]
+      - name: order_item_id
+        tests: [not_null]
+      - name: product_key
+        description: FK to dim_products.product_key.
+        tests: [not_null]
+      - name: seller_key
+        description: FK to dim_sellers.seller_key.
+        tests: [not_null]
+      - name: price
+        tests: [not_null]
+      - name: freight_value
+        tests: [not_null]
+      - name: total_item_value
+        tests: [not_null]

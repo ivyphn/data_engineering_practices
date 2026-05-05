@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: int_orders_items_agg
+    description: >
+      Orders enriched with per-order item aggregates: item count, subtotal, and
+      total freight. Preserves all order timestamps from stg_orders.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: item_count
+        tests: [not_null]

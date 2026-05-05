@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: dim_customer_segments
+    description: >
+      RFM-based customer segmentation. One row per customer_unique_id.
+      Segments: Champions, Loyal Customers, Potential Loyalists, New Customers,
+      Needs Attention, At Risk, Cannot Lose Them, Hibernating, Lost.
+      Value tiers: Platinum, Gold, Silver, Bronze.
+    columns:
+      - name: customer_key
+        description: FK to dim_customers.customer_key.
+        tests: [not_null, unique]
+      - name: r_score
+        description: Recency score 1–5 (5 = most recent).
+        tests: [not_null]
+      - name: f_score
+        description: Frequency score 1–5 (5 = most orders).
+        tests: [not_null]
+      - name: m_score
+        description: Monetary score 1–5 (5 = highest spend).
+        tests: [not_null]
+      - name: rfm_total_score
+        description: Sum of R + F + M scores (3–15).
+        tests: [not_null]
+      - name: rfm_cell_code
+        description: Concatenated RFM scores e.g. "554".
+        tests: [not_null]
+      - name: customer_segment
+        tests: [not_null]
+      - name: value_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: [Platinum, Gold, Silver, Bronze]

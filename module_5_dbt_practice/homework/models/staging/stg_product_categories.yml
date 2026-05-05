@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: stg_product_categories
+    description: >
+      Staging for category name translation. Columns renamed to
+      category_name_pt (Portuguese) and category_name_en (English).
+    columns:
+      - name: category_name_pt
+        tests: [not_null, unique]
+      - name: category_name_en
+        tests: [not_null]

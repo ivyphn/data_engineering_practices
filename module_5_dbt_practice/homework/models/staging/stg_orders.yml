@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: >
+      Staging for orders.
+      One row per order_id.
+    columns:
+      - name: order_id
+        description: Unique order identifier.
+        tests: [not_null, unique]
+      - name: customer_id
+        description: FK to stg_customers.
+        tests: [not_null]
+      - name: order_status
+        description: Current status of the order.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [delivered, shipped, canceled, unavailable, invoiced,
+                       processing, created, approved]
+      - name: order_purchase_timestamp
+        tests: [not_null]

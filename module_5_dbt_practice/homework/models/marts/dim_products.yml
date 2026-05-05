@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: dim_products
+    description: >
+      Product dimension. English category names and physical product attributes.
+    columns:
+      - name: product_key
+        description: Natural key — product_id from source.
+        tests: [not_null, unique]
+      - name: category_name_en
+        description: English category name; falls back to Portuguese when no translation exists.

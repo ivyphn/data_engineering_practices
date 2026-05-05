@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: fct_seller_monthly_metrics
+    description: >
+      Monthly seller performance scorecard. One row per (seller_key, order_month).
+      Includes volume, revenue, quality, on-time delivery, and cancellation metrics.
+      Useful for seller tier management and SLA monitoring.
+    columns:
+      - name: seller_key
+        description: FK to dim_sellers.seller_key.
+        tests: [not_null]
+      - name: order_month
+        description: First day of the month (DATE).
+        tests: [not_null]
+      - name: orders_count
+        tests: [not_null]
+      - name: items_sold
+        tests: [not_null]
+      - name: gmv
+        description: Gross merchandise value — sum of item prices.
+        tests: [not_null]
+      - name: on_time_delivery_rate
+        description: Share of delivered orders arriving on or before estimated date.
+      - name: cancellation_rate
+        description: Share of orders that were cancelled.

@@ -49,6 +49,6 @@
     #}
     CASE
         WHEN {{ start_col }} IS NULL OR {{ end_col }} IS NULL THEN NULL
-        ELSE date_diff('day', date({{ start_col }}), date({{ end_col }}))
+        ELSE date_diff('day', cast({{ start_col }} as timestamp), cast({{ end_col }} as timestamp))
     END
 {% endmacro %}

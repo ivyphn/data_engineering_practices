@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: int_orders_complete
+    description: >
+      Central order record joining items, payments, and reviews aggregates.
+      Adds computed delivery lead-times, delivery_status classification,
+      is_late_delivery flag, payment split flag, and has_review flag.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: delivery_status
+        description: "Values: on_time, late, cancelled, in_transit, unknown."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [on_time, late, cancelled, in_transit, unknown]
+      - name: is_late_delivery
+        tests: [not_null]
+      - name: has_review
+        tests: [not_null]
+      - name: payment_split_flag
+        tests: [not_null]

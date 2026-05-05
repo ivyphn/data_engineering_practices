@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: fct_customer_cohorts
+    description: >
+      Monthly cohort retention table. Grain: (acquisition_month, activity_month).
+      Tracks how many customers from each acquisition cohort placed orders
+      in each subsequent month, with revenue and retention rate.
+      Use for cohort retention charts and LTV-by-cohort analysis.
+    columns:
+      - name: acquisition_month
+        description: Month the cohort was first acquired (first order month).
+        tests: [not_null]
+      - name: activity_month
+        description: The month in which activity is being measured.
+        tests: [not_null]
+      - name: months_since_acquisition
+        description: 0 = acquisition month, 1 = first retention month, etc.
+        tests: [not_null]
+      - name: cohort_size
+        description: Total number of customers acquired in acquisition_month.
+        tests: [not_null]
+      - name: active_customers
+        description: Customers from the cohort who placed an order in activity_month.
+        tests: [not_null]
+      - name: retention_rate
+        description: active_customers / cohort_size.
+        tests: [not_null]
+      - name: total_revenue
+        tests: [not_null]

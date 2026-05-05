@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: stg_sellers
+    description: Staging for sellers. Zip code cast to VARCHAR.
+    columns:
+      - name: seller_id
+        tests: [not_null, unique]

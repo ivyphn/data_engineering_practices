@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_public_holidays
+    description: >
+      Staging for Brazilian national public holidays seed (2016–2025).
+      holiday_date cast from YYYY-MM-DD string to DATE.
+    columns:
+      - name: holiday_date
+        description: Calendar date of the public holiday.
+        tests: [not_null]
+      - name: holiday_name
+        description: Official Portuguese name of the holiday.
+        tests: [not_null]
+      - name: holiday_type
+        description: national_fixed or national_variable.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [national_fixed, national_variable]

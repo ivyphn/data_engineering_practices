@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: int_orders_reviews_agg
+    description: >
+      Per-order review aggregates: average and max score, review count, and
+      the comment from the most recently created review.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]

@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: int_products_enriched
+    description: >
+      Products joined with English category translations.
+      Falls back to the Portuguese category name when no translation exists.
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: category_name_en
+        description: English category name; falls back to Portuguese when no translation exists.

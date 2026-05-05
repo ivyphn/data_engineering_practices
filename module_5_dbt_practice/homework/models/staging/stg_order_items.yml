@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: stg_order_items
+    description: >
+      Staging for order line items. Price and freight_value cast to DECIMAL.
+      One row per (order_id, order_item_id).
+    columns:
+      - name: order_id
+        tests: [not_null]
+      - name: order_item_id
+        tests: [not_null]
+      - name: price
+        tests: [not_null]
+      - name: freight_value
+        tests: [not_null]

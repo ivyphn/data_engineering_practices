@@ -10,5 +10,4 @@ select
     review_comment_message                                  as comment_message,
     {{ convert_timezone('review_creation_date') }}          as review_creation_date,
     {{ convert_timezone('review_answer_timestamp') }}       as review_answer_timestamp
-
 from source

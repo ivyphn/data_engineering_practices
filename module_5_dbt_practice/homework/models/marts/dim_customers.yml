@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      Customer dimension at the customer_unique_id grain. Includes location,
+      Brazilian macro-region, and pre-aggregated lifetime order metrics.
+    columns:
+      - name: customer_key
+        description: Natural key — customer_unique_id from source.
+        tests: [not_null, unique]
+      - name: customer_city
+        tests: [not_null]
+      - name: customer_state
+        tests: [not_null]
+      - name: customer_macro_region
+        description: Brazilian macro-region (Norte, Nordeste, Centro-Oeste, Sudeste, Sul).
+      - name: total_orders
+        tests: [not_null]
+      - name: lifetime_value
+        tests: [not_null]

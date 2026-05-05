@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: dim_geography
+    description: >
+      Brazilian state dimension with macro-region mapping. 27 rows
+      (26 states + Federal District). Used to enrich customer and seller locations.
+    columns:
+      - name: state_code
+        description: Two-letter Brazilian state abbreviation.
+        tests: [not_null, unique]
+      - name: state_name
+        tests: [not_null]
+      - name: macro_region
+        tests:
+          - not_null
+          - accepted_values:
+              values: [Norte, Nordeste, Centro-Oeste, Sudeste, Sul]
+      - name: country
+        tests: [not_null]

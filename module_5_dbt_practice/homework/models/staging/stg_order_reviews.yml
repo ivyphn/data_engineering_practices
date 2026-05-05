@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_order_reviews
+    description: >
+      Staging for order reviews. Score cast to INT; verbose column names shortened.
+      One row per review_id; multiple reviews per order are possible.
+    columns:
+      - name: review_id
+        tests: [not_null]
+      - name: order_id
+        tests: [not_null]
+      - name: review_score
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+              quote: false

@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: stg_order_payments
+    description: >
+      Staging for order payments. Payment amounts cast to DECIMAL.
+      An order may have multiple payment rows (e.g. voucher + credit card).
+    columns:
+      - name: order_id
+        tests: [not_null]
+      - name: payment_sequential
+        tests: [not_null]
+      - name: payment_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: [credit_card, boleto, voucher, debit_card, not_defined]
+      - name: payment_value
+        tests: [not_null]
