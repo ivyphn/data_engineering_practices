@@ -2,7 +2,7 @@
 
 > **Stack:** dbt · AWS Athena (Presto SQL) · Amazon S3  
 > **Dataset:** [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — 100k+ real orders, 2016–2018  
-> **Models:** 26 total — 9 staging · 7 intermediate · 10 marts · 21 tests
+> **Models:** 27 total — 9 staging · 7 intermediate · 10 marts · 1 OBT · 21 tests
 
 ---
 
@@ -17,9 +17,10 @@
 7. [Step 3 — Staging Layer](#7-step-3--staging-layer)
 8. [Step 4 — Intermediate Layer](#8-step-4--intermediate-layer)
 9. [Step 5 — Marts Layer](#9-step-5--marts-layer)
-10. [Step 6 — Testing](#10-step-6--testing)
-11. [DAG: Full Model Lineage](#11-dag-full-model-lineage)
-12. [How to Run](#12-how-to-run)
+10. [Step 6 — One Big Table (OBT)](#10-step-6--one-big-table-obt)
+11. [Step 7 — Testing](#11-step-7--testing)
+12. [DAG: Full Model Lineage](#12-dag-full-model-lineage)
+13. [How to Run](#13-how-to-run)
 
 ---
 
@@ -36,6 +37,7 @@ Raw Olist data arrives as separate CSV tables — orders, customers, products, p
 | Seller on-time delivery rate over time? | `fct_seller_monthly_metrics` |
 | What % of the March 2017 cohort is still buying in June? | `fct_customer_cohorts` |
 | Who are Champion customers vs Lost customers? | `dim_customer_segments` |
+| All of the above in one table, no joins required? | `obt_orders` |
 
 ---
 
@@ -377,7 +379,50 @@ Jan 2017    | Mar 2017  | 2            | 2,341       | 89     | 3.8%
 
 ---
 
-## 10. Step 6 — Testing
+## 10. Step 6 — One Big Table (OBT)
+
+The marts layer provides normalised dims and facts suited for complex multi-table analysis. However, some BI tools and self-service users prefer a single wide table they can filter and aggregate without writing any joins.
+
+`obt_orders` serves that purpose — one row per order, with all relevant date, customer, and segment attributes pre-joined.
+
+### What is included
+
+| Category | Columns |
+|---|---|
+| Order | `order_id`, `order_status`, `delivery_status`, `is_late_delivery`, timestamps |
+| Measures | `gross_order_value`, `total_payment_value`, `item_count`, `actual_delivery_days` |
+| Payment | `primary_payment_type`, `max_installments`, `payment_split_flag` |
+| Review | `avg_review_score`, `review_count`, `has_review` |
+| Date | `purchase_date`, `year`, `quarter`, `month`, `is_weekend`, `is_business_day` |
+| Customer | `customer_city`, `customer_state`, `customer_macro_region`, `lifetime_value` |
+| Segment | `customer_segment`, `value_tier`, `r_score`, `f_score`, `m_score` |
+
+### Structure
+
+```sql
+-- models/marts/obt/obt_orders.sql
+from fct_orders            as o
+left join dim_date         as d  on o.purchase_date_key = d.date_key
+left join dim_customers    as c  on o.customer_key      = c.customer_key
+left join dim_customer_segments as s on o.customer_key  = s.customer_key
+```
+
+The OBT reads from mart models, not intermediate models. This means it automatically reflects any changes made to the underlying dims or facts without rework.
+
+### When to use OBT vs fact + dims
+
+| Scenario | Recommended |
+|---|---|
+| Self-service analytics, simple dashboards | `obt_orders` |
+| Product-level or seller-level analysis | `fct_order_items` + `dim_products` / `dim_sellers` |
+| Cohort or retention analysis | `fct_customer_cohorts` |
+| Seller monthly performance | `fct_seller_monthly_metrics` |
+
+The OBT does not replace the fact and dimension tables — it is an additional convenience layer for the most common query patterns.
+
+---
+
+## 11. Step 7 — Testing
 
 dbt tests return rows when they fail — an empty result means the test passes.
 
@@ -433,7 +478,7 @@ Testing at each layer means issues surface close to their source. A problem in s
 
 ---
 
-## 11. DAG: Full Model Lineage
+## 12. DAG: Full Model Lineage
 
 ```
 Seeds
@@ -471,14 +516,16 @@ Marts                                                                      │
 ├── stg_order_items ─────────────────────────────► fct_order_items
 ├── stg_order_items + stg_orders
 │   + int_orders_reviews_agg ────────────────────► fct_seller_monthly_metrics
-└── stg_customers + int_orders_complete ─────────► fct_customer_cohorts
+├── stg_customers + int_orders_complete ─────────► fct_customer_cohorts
+└── fct_orders + dim_date
+    + dim_customers + dim_customer_segments ──────► obt_orders
 ```
 
-**26 models total** — 9 staging · 7 intermediate · 10 marts
+**27 models total** — 9 staging · 7 intermediate · 10 marts · 1 OBT
 
 ---
 
-## 12. How to Run
+## 13. How to Run
 
 ```bash
 # Install packages
