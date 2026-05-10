@@ -2,7 +2,8 @@ with order_payments as (
     select * from {{ ref('stg_order_payments') }}
 ),
 
--- Total payment value, instalment count, and payment method diversity per order
+--Total payment value, instalment count, and payment method diversity per order
+
 payments_agg as (
     select
         order_id,

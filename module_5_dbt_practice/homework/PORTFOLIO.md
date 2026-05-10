@@ -115,8 +115,6 @@ models:
       +schema: marts
 ```
 
-Configuring materialisation at the folder level means every model within that folder automatically inherits the correct setting — no need to specify it in each individual file.
-
 ### Package
 
 ```yaml
@@ -132,7 +130,7 @@ packages:
 
 ## 5. Step 1 — Seeds
 
-Seeds are CSV files that dbt loads directly into the warehouse. In practice, seeds are best suited for small, static reference tables — lookup data that rarely changes and doesn't belong in a source system.
+In practice, seeds are best suited for small, static reference tables — lookup data that rarely changes and doesn't belong in a source system.
 
 In this project, all raw Olist data was also loaded as seeds for convenience, since the goal was to focus on transformation rather than ingestion. In a production setup, transactional data like orders and payments would come through a proper ingestion pipeline (e.g. Fivetran, Airbyte) and be declared as dbt sources instead.
 
@@ -197,22 +195,6 @@ Each staging model maps 1:1 to a source table. The sole responsibility at this l
 | `stg_product_categories` | Renamed to `category_name_pt` / `category_name_en` to be explicit |
 | `stg_public_holidays` | `holiday_date` string cast to `DATE` |
 
-All models reference upstream models using `{{ ref() }}` rather than hardcoded table names. This is how dbt resolves the dependency graph and determines the correct build order.
-
-```sql
--- stg_orders.sql
-with source as (
-    select * from {{ ref('olist_orders') }}
-)
-select
-    order_id,
-    customer_id,
-    order_status,
-    {{ convert_timezone('order_purchase_timestamp') }}      as order_purchase_timestamp,
-    {{ convert_timezone('order_approved_at') }}             as order_approved_at,
-    ...
-from source
-```
 
 ---
 

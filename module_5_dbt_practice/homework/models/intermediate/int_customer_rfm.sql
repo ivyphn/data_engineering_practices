@@ -5,6 +5,7 @@ with customer_metrics as (
 
 -- Use the latest order date in the dataset as the recency anchor.
 -- This keeps scores stable and comparable across all customers.
+
 reference_date as (
     select max(date(last_order_date)) as anchor_date
     from customer_metrics
