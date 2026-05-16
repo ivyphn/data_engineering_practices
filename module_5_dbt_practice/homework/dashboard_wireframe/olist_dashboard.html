@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olist E-Commerce Analytics Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --surface: #FFFFFF;
+    --surface-alt: #F5F4F0;
+    --border: #E8E6E1;
+    --border-light: #F0EEE9;
+    --text: #1A1A1A;
+    --text-secondary: #5C5C5C;
+    --text-muted: #8C8C8C;
+    --accent: #2563EB;
+    --accent-light: #EFF6FF;
+    --green: #059669;
+    --green-light: #ECFDF5;
+    --red: #DC2626;
+    --red-light: #FEF2F2;
+    --amber: #D97706;
+    --amber-light: #FFFBEB;
+    --purple: #7C3AED;
+    --purple-light: #F5F3FF;
+    --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .dashboard {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 32px 64px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .header-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .header-badge {
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--mono);
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--accent-light);
+    color: var(--accent);
+    letter-spacing: 0.3px;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: var(--font);
+  }
+  .tab-btn:hover { color: var(--text-secondary); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-family: var(--mono);
+  }
+  .filter-select {
+    font-size: 12px;
+    font-family: var(--font);
+    font-weight: 500;
+    padding: 6px 28px 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238C8C8C'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.15s;
+  }
+  .filter-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .filter-chip {
+    font-size: 11px; font-weight: 500; padding: 5px 14px; border: 1px solid var(--border);
+    border-radius: 20px; background: var(--surface); color: var(--text-secondary);
+    cursor: pointer; transition: all 0.15s; font-family: var(--font);
+  }
+  .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filter-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+  .filter-reset {
+    font-size: 11px; font-weight: 500; color: var(--accent); background: none; border: none;
+    cursor: pointer; font-family: var(--font); padding: 4px 8px; border-radius: 4px;
+    transition: background 0.15s; margin-left: auto;
+  }
+  .filter-reset:hover { background: var(--accent-light); }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s;
+  }
+  .kpi-card:hover { box-shadow: var(--shadow-md); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-family: var(--mono); }
+  .kpi-value { font-size: 28px; font-weight: 800; color: var(--text); margin-top: 4px; letter-spacing: -0.5px; }
+  .kpi-footer { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .kpi-trend { font-size: 11px; font-weight: 600; font-family: var(--mono); padding: 2px 7px; border-radius: 4px; }
+  .kpi-trend.up { color: var(--green); background: var(--green-light); }
+  .kpi-trend.down { color: var(--red); background: var(--red-light); }
+  .kpi-sub { font-size: 11px; color: var(--text-muted); }
+
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; letter-spacing: -0.2px; }
+  .section-sub { font-size: 11px; color: var(--text-muted); font-family: var(--mono); margin-bottom: 12px; }
+
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow-sm);
+  }
+  .chart-wrap { position: relative; width: 100%; }
+  .chart-note {
+    font-size: 11px; color: var(--text-muted); margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--border-light); line-height: 1.6;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .grid-sidebar { display: grid; grid-template-columns: 1.4fr 0.6fr; gap: 14px; }
+
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    text-align: left; padding: 10px 12px; font-size: 10px; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px;
+    font-family: var(--mono); border-bottom: 2px solid var(--border);
+  }
+  .data-table th.r, .data-table td.r { text-align: right; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface-alt); }
+  .data-table .nm { font-weight: 600; color: var(--text); }
+  .sb { font-size: 11px; font-weight: 600; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; }
+
+  .cohort-cell { padding: 5px 4px; text-align: center; border-radius: 3px; font-weight: 500; font-size: 10px; font-family: var(--mono); }
+  .cohort-hdr { font-weight: 600; color: var(--text-muted); padding: 5px 4px; font-size: 10px; font-family: var(--mono); }
+
+  .del-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; box-shadow: var(--shadow-sm); text-align: center;
+  }
+  .del-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+  .del-pct { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 6px 0 2px; }
+  .del-cnt { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+
+  .model-ref { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .model-ref h4 { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); font-family: var(--mono); margin-bottom: 8px; }
+  .mi { font-size: 12px; font-family: var(--mono); color: var(--text-secondary); padding: 3px 0; display: flex; align-items: center; gap: 6px; }
+  .md { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+
+  .footer {
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    font-size: 11px; color: var(--text-muted); font-family: var(--mono);
+  }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-sidebar { grid-template-columns: 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .dashboard { padding: 16px; }
+  }
+  @media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr; }
+    .model-ref { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+  <div class="header">
+    <div>
+      <h1>Olist E-Commerce Analytics <span class="header-badge">dbt + Athena</span></h1>
+      <div class="header-sub">Brazilian marketplace &middot; 100K+ orders &middot; Sep 2016 - Aug 2018</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab-btn" onclick="switchTab('customers',this)">Customer Segments</button>
+    <button class="tab-btn" onclick="switchTab('products',this)">Products & Sellers</button>
+    <button class="tab-btn" onclick="switchTab('operations',this)">Operations</button>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <div class="tab-panel active" id="panel-overview">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">Period</span>
+        <button class="filter-chip active" onclick="setPeriod('all',this)">All Time</button>
+        <button class="filter-chip" onclick="setPeriod('2017',this)">2017</button>
+        <button class="filter-chip" onclick="setPeriod('2018',this)">2018</button>
+        <button class="filter-chip" onclick="setPeriod('6m',this)">Last 6M</button>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">Region</span>
+        <select class="filter-select" id="fRegion" onchange="refreshOverview()">
+          <option value="all">All Regions</option>
+          <option>Sudeste</option><option>Sul</option><option>Nordeste</option><option>Centro-Oeste</option><option>Norte</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Category</span>
+        <select class="filter-select" id="fCat" onchange="refreshOverview()">
+          <option value="all">All Categories</option>
+          <option>Bed/Bath/Table</option><option>Health & Beauty</option><option>Sports & Leisure</option>
+          <option>Furniture & Decor</option><option>Computers & Acc.</option><option>Housewares</option>
+          <option>Watches & Gifts</option><option>Telephony</option><option>Garden Tools</option><option>Auto</option>
+        </select>
+      </div>
+      <button class="filter-reset" onclick="resetOvFilters()">Reset filters</button>
+    </div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="section">
+      <div class="section-title">Revenue & Order Volume</div>
+      <div class="section-sub">Source: fct_orders + dim_date - monthly aggregation</div>
+      <div class="chart-card"><div class="chart-wrap" style="height:300px"><canvas id="cRev"></canvas></div>
+      <div class="chart-note">Revenue grew from R$180K/month in late 2016 to over R$1M/month by mid-2018. Seasonal peaks align with Black Friday Brazil (November) and post-holiday Q1 demand.</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="section">
+        <div class="section-title">Revenue by Region</div>
+        <div class="section-sub">Source: dim_customers + dim_geography</div>
+        <div class="chart-card"><div class="chart-wrap" style="height:260px"><canvas id="cReg"></canvas></div>
+        <div class="chart-note">Sudeste (SP, RJ, MG) accounts for nearly 70% of all orders. Nordeste is the largest untapped growth opportunity.</div></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Payment Methods</div>
+        <div class="section-sub">Source: int_orders_payments_agg</div>
+        <div class="chart-card"><div class="chart-wrap" style="height:260px"><canvas id="cPay"></canvas></div>
+        <div class="chart-note">Credit cards at 74% with avg 3.8 installments. Boleto (bank slip) at 19% reflects a significant unbanked buyer segment across Brazil.</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Review Score Distribution</div>
+      <div class="section-sub">Source: int_orders_reviews_agg</div>
+      <div class="grid-sidebar">
+        <div class="chart-card"><div class="chart-wrap" style="height:240px"><canvas id="cRevw"></canvas></div></div>
+        <div class="chart-card" style="display:flex;flex-direction:column;justify-content:center">
+          <div style="text-align:center">
+            <div class="kpi-label">Average Review</div>
+            <div style="font-size:48px;font-weight:800;color:var(--text);margin-top:4px">4.1</div>
+            <div class="kpi-sub">across 98,000 reviews</div>
+          </div>
+          <div style="margin-top:16px;font-size:11px;color:var(--text-muted);line-height:1.7">
+            57% of reviews are 5-star, but 1-star at 12% flags a dissatisfied segment worth cross-referencing with delivery status and product category.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CUSTOMERS ═══ -->
+  <div class="tab-panel" id="panel-customers">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">Value Tier</span>
+        <select class="filter-select" id="fTier"><option value="all">All Tiers</option><option>Platinum</option><option>Gold</option><option>Silver</option><option>Bronze</option></select>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">Segment</span>
+        <select class="filter-select" id="fSeg"><option value="all">All Segments</option><option>Champions</option><option>Loyal</option><option>Potential Loyalists</option><option>Recent Customers</option><option>Promising</option><option>Need Attention</option><option>About to Sleep</option><option>At Risk</option><option>Cannot Lose</option><option>Lost</option></select>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">RFM Customer Segmentation</div>
+      <div class="section-sub">Source: dim_customer_segments via int_customer_rfm (NTILE(5) on Recency, Frequency, Monetary)</div>
+      <div class="grid-sidebar">
+        <div class="chart-card"><div class="chart-wrap" style="height:380px"><canvas id="cRfm"></canvas></div></div>
+        <div class="chart-card">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-family:var(--mono);margin-bottom:12px">Avg Lifetime Value</div>
+          <div id="ltvList"></div>
+          <div class="chart-note">Champions (4.3%) deliver 10x the LTV of Lost customers. "Cannot Lose" at 3.9% should be the top re-engagement priority.</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Value Tiers</div>
+      <div class="section-sub">Source: dim_customer_segments (m_score mapped to Platinum / Gold / Silver / Bronze)</div>
+      <div class="grid-4" id="tierGrid"></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Cohort Retention Heatmap</div>
+      <div class="section-sub">Source: fct_customer_cohorts (acquisition_month vs activity_month retention matrix)</div>
+      <div class="chart-card">
+        <div id="cohortMap" style="overflow-x:auto"></div>
+        <div class="chart-note">Retention drops sharply after M+0. Average M+1 retention ~6-7%, typical for marketplace models. Grain: customer_unique_id (not order-scoped customer_id).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PRODUCTS ═══ -->
+  <div class="tab-panel" id="panel-products">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">Category</span>
+        <select class="filter-select" id="fCatP"><option value="all">All Categories</option><option>Bed/Bath/Table</option><option>Health & Beauty</option><option>Sports & Leisure</option><option>Furniture & Decor</option><option>Computers & Acc.</option></select>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">Sort By</span>
+        <select class="filter-select" id="fSort"><option value="revenue">Revenue</option><option value="items">Items Sold</option><option value="review">Review Score</option></select>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Top Categories by Revenue</div>
+      <div class="section-sub">Source: fct_order_items + dim_products (category_name_en)</div>
+      <div class="chart-card"><div class="chart-wrap" style="height:320px"><canvas id="cCat"></canvas></div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Category Performance Matrix</div>
+      <div class="section-sub">Source: fct_order_items + dim_products</div>
+      <div class="chart-card" style="padding:0;overflow:hidden">
+        <table class="data-table"><thead><tr><th>Category</th><th class="r">Revenue</th><th class="r">Items Sold</th><th class="r">Avg Price</th><th class="r">Avg Review</th></tr></thead><tbody id="catTB"></tbody></table>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Seller Performance: GMV vs On-Time Delivery</div>
+      <div class="section-sub">Source: fct_seller_monthly_metrics</div>
+      <div class="chart-card"><div class="chart-wrap" style="height:320px"><canvas id="cSell"></canvas></div>
+      <div class="chart-note">Each bubble is one seller. Top-right = high GMV + reliable delivery. Bottom-left sellers may need a performance review. Bubble size reflects order volume.</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ OPERATIONS ═══ -->
+  <div class="tab-panel" id="panel-operations">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">Delivery Status</span>
+        <select class="filter-select" id="fDel"><option value="all">All Statuses</option><option>On Time</option><option>Late</option><option>In Transit</option><option>Cancelled</option></select>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">Period</span>
+        <button class="filter-chip active" onclick="setOpsPd('all',this)">All Time</button>
+        <button class="filter-chip" onclick="setOpsPd('2017',this)">2017</button>
+        <button class="filter-chip" onclick="setOpsPd('2018',this)">2018</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Delivery Performance</div>
+      <div class="section-sub">Source: int_orders_complete (delivery_status classification)</div>
+      <div class="grid-4" id="delGrid"></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Avg Delivery Days vs Estimated</div>
+      <div class="section-sub">Source: fct_orders (actual_delivery_days vs estimated)</div>
+      <div class="chart-card"><div class="chart-wrap" style="height:280px"><canvas id="cDD"></canvas></div>
+      <div class="chart-note">Sellers consistently over-estimate delivery windows (dashed line). Actual delivery improved from ~14 to ~10 days. Tightening estimated windows could boost buyer confidence.</div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Average Order Value Trend</div>
+      <div class="section-sub">Source: obt_orders (gross_order_value / order count)</div>
+      <div class="chart-card"><div class="chart-wrap" style="height:240px"><canvas id="cAov"></canvas></div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Data Model Reference</div>
+      <div class="section-sub">27 models: 9 staging / 7 intermediate / 10 marts / 1 OBT / 21 dbt tests</div>
+      <div class="chart-card">
+        <div class="model-ref">
+          <div>
+            <h4>Dimensions</h4>
+            <div class="mi"><span class="md" style="background:var(--accent)"></span>dim_date</div>
+            <div class="mi"><span class="md" style="background:var(--accent)"></span>dim_customers</div>
+            <div class="mi"><span class="md" style="background:var(--accent)"></span>dim_products</div>
+            <div class="mi"><span class="md" style="background:var(--accent)"></span>dim_sellers</div>
+            <div class="mi"><span class="md" style="background:var(--accent)"></span>dim_geography</div>
+            <div class="mi"><span class="md" style="background:var(--accent)"></span>dim_customer_segments</div>
+          </div>
+          <div>
+            <h4>Facts</h4>
+            <div class="mi"><span class="md" style="background:var(--green)"></span>fct_orders</div>
+            <div class="mi"><span class="md" style="background:var(--green)"></span>fct_order_items</div>
+            <div class="mi"><span class="md" style="background:var(--green)"></span>fct_seller_monthly_metrics</div>
+            <div class="mi"><span class="md" style="background:var(--green)"></span>fct_customer_cohorts</div>
+          </div>
+          <div>
+            <h4>OBT + Stack</h4>
+            <div class="mi"><span class="md" style="background:var(--amber)"></span>obt_orders</div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-muted);line-height:1.8">
+              dbt + AWS Athena (Presto SQL)<br>Amazon S3 (raw + curated)<br>Kimball star schema<br>21 dbt tests (schema + singular)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Built with dbt + AWS Athena + S3 &middot; Kimball dimensional model</span>
+    <span>Dataset: Olist Brazilian E-Commerce (Kaggle)</span>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════════ */
+const MO=["Sep 16","Oct 16","Nov 16","Dec 16","Jan 17","Feb 17","Mar 17","Apr 17","May 17","Jun 17","Jul 17","Aug 17","Sep 17","Oct 17","Nov 17","Dec 17","Jan 18","Feb 18","Mar 18","Apr 18","May 18","Jun 18","Jul 18","Aug 18"];
+const RD=MO.map((m,i)=>{const b=180000+i*42000+Math.sin(i*0.7)*60000;const o=Math.round(1200+i*180+Math.sin(i*0.5)*400);const r=Math.round(b+(Math.random()*0.7-0.3)*30000);return{m,r:r,o,a:Math.round(r/o)};});
+const CD=[{n:"Bed/Bath/Table",r:1820400,i:11115,p:163.7,s:4.1},{n:"Health & Beauty",r:1610200,i:9670,p:166.5,s:4.2},{n:"Sports & Leisure",r:1290800,i:8641,p:149.4,s:4.0},{n:"Furniture & Decor",r:1180500,i:7320,p:161.3,s:3.8},{n:"Computers & Acc.",r:1120300,i:7827,p:143.1,s:4.3},{n:"Housewares",r:980600,i:6964,p:140.8,s:4.1},{n:"Watches & Gifts",r:870200,i:5991,p:145.2,s:3.9},{n:"Telephony",r:710500,i:4545,p:156.3,s:3.7},{n:"Garden Tools",r:580400,i:4347,p:133.5,s:4.0},{n:"Auto",r:410200,i:3210,p:127.8,s:4.2}];
+const RS=[{n:"Champions",c:4210,p:4.3,l:892,cl:"#059669"},{n:"Loyal",c:7830,p:8.0,l:534,cl:"#2563EB"},{n:"Potential Loyalists",c:9120,p:9.3,l:312,cl:"#6366F1"},{n:"Recent Customers",c:11400,p:11.6,l:187,cl:"#7C3AED"},{n:"Promising",c:8960,p:9.1,l:156,cl:"#A78BFA"},{n:"Need Attention",c:12300,p:12.6,l:198,cl:"#D97706"},{n:"About to Sleep",c:10800,p:11.0,l:142,cl:"#F97316"},{n:"At Risk",c:14200,p:14.5,l:267,cl:"#DC2626"},{n:"Cannot Lose",c:3800,p:3.9,l:612,cl:"#B91C1C"},{n:"Lost",c:15380,p:15.7,l:89,cl:"#9CA3AF"}];
+const VT=[{t:"Platinum",c:19600,p:20,r:4210000,cl:"#6366F1",bg:"#F5F3FF"},{t:"Gold",c:19600,p:20,r:2890000,cl:"#D97706",bg:"#FFFBEB"},{t:"Silver",c:19600,p:20,r:1720000,cl:"#6B7280",bg:"#F9FAFB"},{t:"Bronze",c:39200,p:40,r:980000,cl:"#92400E",bg:"#FEF3C7"}];
+const CM=["Jan 17","Feb 17","Mar 17","Apr 17","May 17","Jun 17","Jul 17","Aug 17","Sep 17","Oct 17","Nov 17","Dec 17"];
+const CO=CM.map((m,i)=>{const sz=1800+Math.round(Math.random()*600);const rt=[];for(let j=0;j<=11-i;j++)rt.push(j===0?100:Math.max(1,Math.round((6.5-j*0.4+Math.random()*1.5)*10)/10));return{m,sz,rt};});
+const RG=[{n:"Sudeste",o:68420,r:7180000,p:69.8},{n:"Sul",o:11230,r:1180000,p:11.5},{n:"Nordeste",o:10840,r:1090000,p:11.1},{n:"Centro-Oeste",o:4520,r:470000,p:4.6},{n:"Norte",o:2990,r:280000,p:3.0}];
+const PY=[{t:"Credit Card",p:73.9},{t:"Boleto",p:19.4},{t:"Voucher",p:3.8},{t:"Debit Card",p:2.9}];
+const RV=[{s:"1 star",c:11424},{s:"2 stars",c:3151},{s:"3 stars",c:8179},{s:"4 stars",c:19142},{s:"5 stars",c:56104}];
+const DL=[{s:"On Time",c:78200,p:79.8,cl:"#059669"},{s:"Late",c:7840,p:8.0,cl:"#DC2626"},{s:"In Transit",c:6270,p:6.4,cl:"#D97706"},{s:"Cancelled",c:5690,p:5.8,cl:"#9CA3AF"}];
+const DD=MO.map((m,i)=>({m,a:Math.round((14-i*0.18+Math.sin(i*0.6)*2.5)*10)/10,e:Math.round((22-i*0.12+Math.sin(i*0.4)*1.8)*10)/10}));
+const SL=Array.from({length:40},(_,i)=>({x:Math.round(40000+Math.random()*260000),y:Math.round((70+Math.random()*28)*10)/10,r:5+Math.random()*4,nm:`Seller ${i+1}`,cr:Math.round(Math.random()*12*10)/10,rv:Math.round((3.2+Math.random()*1.7)*10)/10}));
+
+/* ═══ HELPERS ═══ */
+const fK=v=>`R$ ${(v/1000).toFixed(0)}K`;
+const fF=v=>`R$ ${v.toLocaleString('pt-BR')}`;
+const fN=v=>v.toLocaleString('pt-BR');
+
+Chart.defaults.font.family="'Plus Jakarta Sans',sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.color='#8C8C8C';
+Chart.defaults.plugins.legend.display=false;
+Chart.defaults.elements.bar.borderRadius=4;
+
+const TS={backgroundColor:'#fff',titleColor:'#1A1A1A',bodyColor:'#5C5C5C',borderColor:'#E8E6E1',borderWidth:1,padding:12,cornerRadius:8};
+const GC='#F0EEE9';
+let CH={};
+let curPd='all';
+const inited={overview:false,customers:false,products:false,operations:false};
+
+/* ═══ TABS ═══ */
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+
+  // Use setTimeout to ensure the panel is fully visible before chart init/resize
+  setTimeout(()=>{
+    if(!inited[id]){
+      if(id==='overview') initOv();
+      if(id==='customers') initCu();
+      if(id==='products') initPr();
+      if(id==='operations') initOp();
+      inited[id]=true;
+    }
+    // Resize all charts in the now-visible panel
+    const panel=document.getElementById('panel-'+id);
+    Object.keys(CH).forEach(k=>{
+      if(CH[k]&&CH[k].canvas&&panel.contains(CH[k].canvas)) CH[k].resize();
+    });
+  },50);
+}
+
+/* ═══ FILTERS ═══ */
+function filtRev(){
+  if(curPd==='all')return RD;
+  if(curPd==='2017')return RD.filter(d=>d.m.includes('17'));
+  if(curPd==='2018')return RD.filter(d=>d.m.includes('18'));
+  return RD.slice(-6);
+}
+function setPeriod(p,el){
+  curPd=p;
+  el.parentElement.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  updRev();buildKPI();
+}
+function setOpsPd(p,el){el.parentElement.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+function refreshOverview(){updRev();buildKPI();}
+function resetOvFilters(){
+  curPd='all';
+  document.querySelectorAll('#panel-overview .filter-chip').forEach((c,i)=>{c.classList.toggle('active',i===0);});
+  document.getElementById('fRegion').value='all';
+  document.getElementById('fCat').value='all';
+  updRev();buildKPI();
+}
+
+/* ═══ KPIs ═══ */
+function buildKPI(){
+  const d=filtRev(),tr=d.reduce((s,x)=>s+x.r,0),to=d.reduce((s,x)=>s+x.o,0);
+  const ks=[
+    {l:"Total Revenue",v:`R$ ${(tr/1e6).toFixed(1)}M`,t:14.2,d:"up",s:"vs prior period"},
+    {l:"Total Orders",v:fN(to),t:18.6,d:"up",s:"vs prior period"},
+    {l:"Avg Order Value",v:`R$ ${Math.round(tr/to)}`,s:"gross_order_value / orders"},
+    {l:"Avg Review Score",v:"4.1",t:2.1,d:"up",s:"98K reviews"},
+    {l:"On-Time Delivery",v:"79.8%",t:-1.3,d:"down",s:"delivered <= estimated"},
+  ];
+  document.getElementById('kpiGrid').innerHTML=ks.map(k=>`<div class="kpi-card"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div><div class="kpi-footer">${k.t!==undefined?`<span class="kpi-trend ${k.d}">${k.d==='up'?'+':''}${k.t}%</span>`:''}<span class="kpi-sub">${k.s||''}</span></div></div>`).join('');
+}
+
+/* ═══ OVERVIEW ═══ */
+function initOv(){
+  buildKPI();
+  CH.rev=new Chart(document.getElementById('cRev'),{type:'bar',data:{labels:RD.map(d=>d.m),datasets:[{label:'Revenue (R$)',data:RD.map(d=>d.r),backgroundColor:'rgba(37,99,235,0.7)',borderRadius:3,yAxisID:'y',order:2},{label:'Orders',data:RD.map(d=>d.o),type:'line',borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.05)',borderWidth:2.5,pointRadius:0,pointHoverRadius:5,tension:0.3,fill:true,yAxisID:'y1',order:1}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{position:'left',ticks:{callback:v=>fK(v)},grid:{color:GC}},y1:{position:'right',grid:{drawOnChartArea:false}},x:{grid:{display:false}}},plugins:{tooltip:{...TS,callbacks:{label:c=>c.dataset.label==='Revenue (R$)'?`Revenue: ${fF(c.raw)}`:`Orders: ${fN(c.raw)}`}},legend:{display:true,position:'top',align:'end',labels:{usePointStyle:true,pointStyle:'circle',padding:16,font:{size:11}}}}}});
+  CH.reg=new Chart(document.getElementById('cReg'),{type:'bar',data:{labels:RG.map(d=>d.n),datasets:[{data:RG.map(d=>d.r),backgroundColor:['#2563EB','#3B82F6','#60A5FA','#93C5FD','#BFDBFE'],borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{callback:v=>fK(v)},grid:{color:GC}},y:{grid:{display:false}}},plugins:{tooltip:{...TS,callbacks:{label:c=>`${fF(c.raw)} (${RG[c.dataIndex].p}%)`}}}}});
+  CH.pay=new Chart(document.getElementById('cPay'),{type:'doughnut',data:{labels:PY.map(d=>d.t),datasets:[{data:PY.map(d=>d.p),backgroundColor:['#2563EB','#059669','#D97706','#7C3AED'],borderWidth:3,borderColor:'#fff'}]},options:{cutout:'60%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:11}}},tooltip:{...TS,callbacks:{label:c=>`${c.label}: ${c.raw}%`}}}}});
+  CH.rvw=new Chart(document.getElementById('cRevw'),{type:'bar',data:{labels:RV.map(d=>d.s),datasets:[{data:RV.map(d=>d.c),backgroundColor:['#DC2626','#F97316','#D97706','#2563EB','#059669'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>`${(v/1000).toFixed(0)}K`},grid:{color:GC}},x:{grid:{display:false}}},plugins:{tooltip:{...TS,callbacks:{label:c=>`${fN(c.raw)} reviews (${((c.raw/98000)*100).toFixed(1)}%)`}}}}});
+}
+function updRev(){
+  if(!CH.rev)return;
+  const d=filtRev();
+  CH.rev.data.labels=d.map(x=>x.m);
+  CH.rev.data.datasets[0].data=d.map(x=>x.r);
+  CH.rev.data.datasets[1].data=d.map(x=>x.o);
+  CH.rev.update('none');
+}
+
+/* ═══ CUSTOMERS ═══ */
+function initCu(){
+  CH.rfm=new Chart(document.getElementById('cRfm'),{type:'bar',data:{labels:RS.map(d=>d.n),datasets:[{data:RS.map(d=>d.c),backgroundColor:RS.map(d=>d.cl),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{callback:v=>`${(v/1000).toFixed(0)}K`},grid:{color:GC}},y:{grid:{display:false},ticks:{font:{size:11}}}},plugins:{tooltip:{...TS,callbacks:{label:c=>`${fN(c.raw)} customers (${RS[c.dataIndex].p}%)`}}}}});
+
+  document.getElementById('ltvList').innerHTML=RS.map(s=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="width:8px;height:8px;border-radius:2px;background:${s.cl};flex-shrink:0"></span><span style="flex:1;font-size:11px;color:var(--text)">${s.n}</span><span style="font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text-secondary)">R$ ${s.l}</span></div>`).join('');
+
+  document.getElementById('tierGrid').innerHTML=VT.map(t=>`<div style="background:${t.bg};border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm)"><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span style="width:10px;height:10px;border-radius:2px;background:${t.cl}"></span><span style="font-size:14px;font-weight:700;color:${t.cl}">${t.t}</span></div><div style="font-size:24px;font-weight:800;color:var(--text)">${fN(t.c)}</div><div style="font-size:11px;color:var(--text-muted)">customers (${t.p}%)</div><div style="font-size:13px;font-weight:700;color:${t.cl};margin-top:8px">R$ ${(t.r/1e6).toFixed(1)}M</div><div style="font-size:11px;color:var(--text-muted)">total revenue</div></div>`).join('');
+
+  let h=`<div style="display:grid;grid-template-columns:80px 55px repeat(12,1fr);gap:2px;min-width:680px">`;
+  h+=`<div class="cohort-hdr">Cohort</div><div class="cohort-hdr" style="text-align:center">Size</div>`;
+  for(let i=0;i<12;i++)h+=`<div class="cohort-hdr" style="text-align:center">M+${i}</div>`;
+  CO.forEach(c=>{
+    h+=`<div class="cohort-cell" style="text-align:left;font-weight:500;color:var(--text)">${c.m}</div>`;
+    h+=`<div class="cohort-cell" style="text-align:center;color:var(--text-muted)">${fN(c.sz)}</div>`;
+    for(let j=0;j<12;j++){const v=c.rt[j];if(v!==undefined){const bg=v===100?'var(--accent)':`rgba(37,99,235,${0.06+(Math.min(v,8)/8)*0.55})`;h+=`<div class="cohort-cell" style="background:${bg};color:${v===100?'#fff':'var(--text)'};font-weight:${v===100?700:400}">${v}%</div>`;}else h+=`<div class="cohort-cell"></div>`;}
+  });
+  h+=`</div>`;
+  document.getElementById('cohortMap').innerHTML=h;
+}
+
+/* ═══ PRODUCTS ═══ */
+function initPr(){
+  CH.cat=new Chart(document.getElementById('cCat'),{type:'bar',data:{labels:CD.map(d=>d.n),datasets:[{data:CD.map(d=>d.r),backgroundColor:CD.map((_,i)=>`hsl(${215+i*8},${65-i*2}%,${48+i*3}%)`),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>fK(v)},grid:{color:GC}},x:{grid:{display:false},ticks:{maxRotation:25,font:{size:10}}}},plugins:{tooltip:{...TS,callbacks:{label:c=>fF(c.raw)}}}}});
+
+  document.getElementById('catTB').innerHTML=CD.map(c=>{const sc=c.s>=4.0?['var(--green)','var(--green-light)']:c.s>=3.5?['var(--amber)','var(--amber-light)']:['var(--red)','var(--red-light)'];return`<tr><td class="nm">${c.n}</td><td class="r">${fF(c.r)}</td><td class="r">${fN(c.i)}</td><td class="r">R$ ${c.p}</td><td class="r"><span class="sb" style="color:${sc[0]};background:${sc[1]}">${c.s}</span></td></tr>`;}).join('');
+
+  CH.sell=new Chart(document.getElementById('cSell'),{type:'bubble',data:{datasets:[{data:SL,backgroundColor:'rgba(37,99,235,0.4)',borderColor:'rgba(37,99,235,0.7)',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:'GMV (R$)',font:{size:11},color:'#8C8C8C'},ticks:{callback:v=>fK(v)},grid:{color:GC}},y:{title:{display:true,text:'On-Time Delivery %',font:{size:11},color:'#8C8C8C'},ticks:{callback:v=>v+'%'},min:65,max:100,grid:{color:GC}}},plugins:{tooltip:{...TS,callbacks:{title:c=>[c[0].raw.nm],label:c=>{const d=c.raw;return[`GMV: ${fF(d.x)}`,`On-Time: ${d.y}%`,`Cancel: ${d.cr}%`,`Review: ${d.rv}`];}}}}}});
+}
+
+/* ═══ OPERATIONS ═══ */
+function initOp(){
+  document.getElementById('delGrid').innerHTML=DL.map(d=>`<div class="del-card"><div><span class="del-dot" style="background:${d.cl}"></span><span style="font-size:13px;font-weight:500">${d.s}</span></div><div class="del-pct" style="color:${d.cl}">${d.p}%</div><div class="del-cnt">${fN(d.c)} orders</div></div>`).join('');
+
+  CH.dd=new Chart(document.getElementById('cDD'),{type:'line',data:{labels:DD.map(d=>d.m),datasets:[{label:'Actual Days',data:DD.map(d=>d.a),borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.05)',borderWidth:2.5,pointRadius:0,pointHoverRadius:5,tension:0.3,fill:true},{label:'Estimated Days',data:DD.map(d=>d.e),borderColor:'#9CA3AF',borderWidth:1.5,borderDash:[6,4],pointRadius:0,pointHoverRadius:4,tension:0.3,fill:false}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{title:{display:true,text:'Days',font:{size:11},color:'#8C8C8C'},grid:{color:GC},min:0},x:{grid:{display:false}}},plugins:{legend:{display:true,position:'top',align:'end',labels:{usePointStyle:true,pointStyle:'circle',padding:16,font:{size:11}}},tooltip:{...TS,callbacks:{label:c=>`${c.dataset.label}: ${c.raw} days`}}}}});
+
+  CH.aov=new Chart(document.getElementById('cAov'),{type:'line',data:{labels:RD.map(d=>d.m),datasets:[{label:'AOV (R$)',data:RD.map(d=>d.a),borderColor:'#D97706',backgroundColor:'rgba(217,119,6,0.06)',borderWidth:2.5,pointRadius:0,pointHoverRadius:5,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{ticks:{callback:v=>`R$ ${v}`},grid:{color:GC}},x:{grid:{display:false}}},plugins:{tooltip:{...TS,callbacks:{label:c=>`AOV: R$ ${c.raw}`}}}}});
+}
+
+/* ═══ INIT ═══ */
+document.addEventListener('DOMContentLoaded',()=>{
+  initOv();
+  inited.overview=true;
+});
+</script>
+</body>
+</html>
